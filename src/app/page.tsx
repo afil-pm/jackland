@@ -23,9 +23,9 @@ export default function Home() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="text-6xl md:text-8xl font-black uppercase tracking-tighter mb-6 leading-none"
+            className="text-5xl md:text-8xl font-black uppercase tracking-tighter mb-6 leading-[0.9] md:leading-none"
           >
-            Redefining <br /> <span className="text-outline">Modern</span> Elegance
+            Redefining <br /> <span className="text-white md:text-outline">Modern</span> Elegance
           </motion.h1>
           <motion.p 
             initial={{ opacity: 0 }}

@@ -59,8 +59,8 @@ export const ProductCard = ({ id, name, price, image, category }: ProductCardPro
         </Link>
 
         {/* Badges */}
-        <div className="absolute top-4 left-4">
-          <span className="bg-black text-white text-[10px] font-black uppercase px-2 py-1 tracking-widest">
+        <div className="absolute top-2 left-2 md:top-4 md:left-4">
+          <span className="bg-black text-white text-[8px] md:text-[10px] font-black uppercase px-1.5 py-0.5 md:px-2 md:py-1 tracking-widest">
             New
           </span>
         </div>
@@ -75,10 +75,10 @@ export const ProductCard = ({ id, name, price, image, category }: ProductCardPro
               className="absolute bottom-4 left-4 right-4 flex gap-2"
             >
               <button 
-                className="flex-1 bg-black text-white py-3 flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-widest hover:bg-neutral-800 transition-colors"
+                className="flex-1 bg-black text-white py-2 md:py-3 flex items-center justify-center gap-1 md:gap-2 text-[10px] md:text-xs font-bold uppercase tracking-widest hover:bg-neutral-800 transition-colors"
                 onClick={handleAddToCart}
               >
-                <ShoppingBag size={16} /> Add to Cart
+                <ShoppingBag size={14} className="md:w-4 md:h-4" /> <span className="hidden md:inline">Add to Cart</span><span className="md:hidden">Add</span>
               </button>
               <button 
                 className="bg-white text-black p-3 hover:bg-neutral-100 transition-colors border border-black/10"
@@ -107,12 +107,12 @@ export const ProductCard = ({ id, name, price, image, category }: ProductCardPro
         </div>
       </div>
 
-      <div className="py-5 px-1">
-        <p className="text-[10px] text-neutral-600 uppercase tracking-widest font-bold mb-1">{category}</p>
+      <div className="py-3 md:py-5 px-1">
+        <p className="text-[8px] md:text-[10px] text-neutral-600 uppercase tracking-widest font-bold mb-1">{category}</p>
         <Link href={`/product/${id}`}>
-          <h3 className="text-sm font-black uppercase tracking-tight mb-2 hover:underline">{name}</h3>
+          <h3 className="text-xs md:text-sm font-black uppercase tracking-tight mb-1 md:mb-2 hover:underline line-clamp-1">{name}</h3>
         </Link>
-        <p className="text-lg font-black">${price.toFixed(2)}</p>
+        <p className="text-sm md:text-lg font-black">${price.toFixed(2)}</p>
       </div>
     </motion.div>
   );

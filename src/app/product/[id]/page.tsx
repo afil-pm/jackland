@@ -118,27 +118,29 @@ export default function ProductDetailPage() {
 
             {/* Quantity & Actions */}
             <div className="space-y-6 pt-6">
-              <div className="flex items-center gap-6">
-                <div className="flex items-center border border-black/10">
-                  <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="px-4 py-2 hover:bg-neutral-100">-</button>
-                  <span className="px-4 font-bold">{quantity}</span>
-                  <button onClick={() => setQuantity(quantity + 1)} className="px-4 py-2 hover:bg-neutral-100">+</button>
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 sm:gap-6">
+                <div className="flex items-center justify-between border border-black/10 h-14 sm:h-auto">
+                  <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="px-6 py-2 hover:bg-neutral-100 h-full flex items-center">-</button>
+                  <span className="px-6 font-bold">{quantity}</span>
+                  <button onClick={() => setQuantity(quantity + 1)} className="px-6 py-2 hover:bg-neutral-100 h-full flex items-center">+</button>
                 </div>
-                <button 
-                  className="flex-1 bg-black text-white py-4 font-black uppercase tracking-widest flex items-center justify-center gap-3 hover:bg-neutral-800 transition-colors"
-                  onClick={handleAddToCart}
-                >
-                  <ShoppingBag size={20} /> Add to Cart
-                </button>
-                <button 
-                  className={cn(
-                    "p-4 border border-black/10 transition-colors",
-                    isLiked ? "bg-black text-white" : "hover:bg-neutral-100"
-                  )}
-                  onClick={handleToggleWishlist}
-                >
-                  <Heart size={20} fill={isLiked ? "currentColor" : "none"} />
-                </button>
+                <div className="flex gap-4 flex-1">
+                  <button 
+                    className="flex-1 bg-black text-white py-4 font-black uppercase tracking-widest flex items-center justify-center gap-3 hover:bg-neutral-800 transition-colors"
+                    onClick={handleAddToCart}
+                  >
+                    <ShoppingBag size={20} /> Add to Cart
+                  </button>
+                  <button 
+                    className={cn(
+                      "p-4 border border-black/10 transition-colors flex items-center justify-center",
+                      isLiked ? "bg-black text-white" : "hover:bg-neutral-100"
+                    )}
+                    onClick={handleToggleWishlist}
+                  >
+                    <Heart size={20} fill={isLiked ? "currentColor" : "none"} />
+                  </button>
+                </div>
               </div>
               
               <button className="w-full py-4 border-2 border-black font-black uppercase tracking-widest hover:bg-black hover:text-white transition-all">

@@ -4,10 +4,11 @@ import React from 'react';
 import Link from 'next/link';
 import { Heart, ShoppingBag, ArrowRight, Home } from 'lucide-react';
 import { ProductCard } from '@/components/shop/ProductCard';
-import { useWishlistStore } from '@/lib/store';
+import { useWishlistStore, useProductStore } from '@/lib/store';
 
 export default function WishlistPage() {
   const { items } = useWishlistStore();
+  const products = useProductStore((state) => state.products);
 
   return (
     <div className="bg-white text-black min-h-screen py-24">
@@ -23,13 +24,23 @@ export default function WishlistPage() {
 
         {items.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-16">
-            {items.map((item) => (
-              <ProductCard 
-                key={item.id} 
-                {...item} 
-                category="Wishlist" 
-              />
-            ))}
+            {items.map((item) => {
+              const productInfo = products.find(p => p.id === item.id);
+              const stock = productInfo ? productInfo.stock : 0;
+              const category = productInfo ? productInfo.category : 'Wishlist';
+              
+              return (
+                <ProductCard 
+                  key={item.id} 
+                  id={item.id}
+                  name={item.name}
+                  price={item.price}
+                  image={item.image}
+                  category={category}
+                  stock={stock}
+                />
+              );
+            })}
           </div>
         ) : (
           <div className="py-24 text-center space-y-8">

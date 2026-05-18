@@ -242,8 +242,9 @@ export interface Order {
 
 interface OrderStore {
   orders: Order[];
-  addOrder: (order: Order) => void;
-  updateOrderStatus: (id: string, status: string, additionalUpdates?: Partial<Order>) => void;
+  syncOrders: () => Promise<void>;
+  addOrder: (order: Order) => Promise<void>;
+  updateOrderStatus: (id: string, status: string, additionalUpdates?: Partial<Order>) => Promise<void>;
   clearOrders: () => void;
 }
 
@@ -251,13 +252,47 @@ export const useOrderStore = create<OrderStore>()(
   persist(
     (set, get) => ({
       orders: [],
-      addOrder: (order) => set({ orders: [order, ...get().orders] }),
-      updateOrderStatus: (id, status, additionalUpdates = {}) =>
+      syncOrders: async () => {
+        try {
+          const res = await fetch('/api/orders');
+          if (res.ok) {
+            const data = await res.json();
+            if (Array.isArray(data)) {
+              set({ orders: data });
+            }
+          }
+        } catch (e) {
+          console.error('Failed to sync orders from database:', e);
+        }
+      },
+      addOrder: async (order) => {
+        set({ orders: [order, ...get().orders] });
+        try {
+          await fetch('/api/orders', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(order),
+          });
+        } catch (e) {
+          console.error('Failed to save order to database:', e);
+        }
+      },
+      updateOrderStatus: async (id, status, additionalUpdates = {}) => {
         set({
           orders: get().orders.map((o) =>
             o.id === id ? { ...o, status, ...additionalUpdates } : o
           ),
-        }),
+        });
+        try {
+          await fetch('/api/orders', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id, status, additionalUpdates }),
+          });
+        } catch (e) {
+          console.error('Failed to update order status in database:', e);
+        }
+      },
       clearOrders: () => set({ orders: [] }),
     }),
     {

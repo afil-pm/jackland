@@ -332,8 +332,19 @@ const AdminPanel = () => {
   const [toastMessage, setToastMessage] = useState('');
   const { isAdminLoggedIn, adminLogout } = useAuthStore();
   const { products } = useProductStore();
-  const { orders, updateOrderStatus, clearOrders } = useOrderStore();
+  const { orders, syncOrders, updateOrderStatus, clearOrders } = useOrderStore();
   const hydrated = useHydrated();
+
+  // Sync orders from central database in real time (every 10s)
+  useEffect(() => {
+    if (isAdminLoggedIn) {
+      syncOrders();
+      const interval = setInterval(() => {
+        syncOrders();
+      }, 10000);
+      return () => clearInterval(interval);
+    }
+  }, [isAdminLoggedIn, syncOrders]);
 
   const handleSendConfirmation = (order: Order) => {
     updateOrderStatus(order.id, 'Confirmed', { 
@@ -489,8 +500,11 @@ const AdminPanel = () => {
             {activeTab === 'orders' && (
               <div className="space-y-6">
                 <div className="flex justify-between items-center">
-                  <h3 className="font-black uppercase tracking-widest text-sm">
+                  <h3 className="font-black uppercase tracking-widest text-sm flex items-center gap-2">
                     Customer Orders ({orders.length})
+                    <span className="inline-flex items-center px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest bg-green-50 text-green-700 border border-green-200 animate-pulse">
+                      ● Live Syncing
+                    </span>
                   </h3>
                   {orders.length > 0 && (
                     <button

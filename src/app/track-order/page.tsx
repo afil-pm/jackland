@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, Suspense } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { 
@@ -23,8 +23,13 @@ function TrackOrderContent() {
   const router = useRouter();
   const queryId = searchParams.get('id') || '';
   const [inputId, setInputId] = useState(queryId);
-  const { orders } = useOrderStore();
+  const { orders, syncOrders } = useOrderStore();
   const hydrated = useHydrated();
+
+  // Sync orders from central database upon landing
+  useEffect(() => {
+    syncOrders();
+  }, [syncOrders]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();

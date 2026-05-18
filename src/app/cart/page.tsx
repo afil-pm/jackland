@@ -4,11 +4,12 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { Trash2, Plus, Minus, ShoppingBag, ArrowRight, ShieldCheck } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { useCartStore } from '@/lib/store';
+import { useCartStore, useProductStore } from '@/lib/store';
 import { useHydrated } from '@/lib/useHydrated';
 
 export default function CartPage() {
   const { items, updateQuantity, removeItem } = useCartStore();
+  const products = useProductStore((state) => state.products);
   const hydrated = useHydrated();
 
   const subtotal = items.reduce((acc, item) => acc + (item.price * item.quantity), 0);
@@ -37,7 +38,11 @@ export default function CartPage() {
                 <div className="text-right">Action</div>
               </div>
 
-              {items.map((item) => (
+              {items.map((item) => {
+                const productInfo = products.find(p => p.id === item.id);
+                const maxStock = productInfo ? productInfo.stock : Number.MAX_SAFE_INTEGER;
+                
+                return (
                 <div key={item.id} className="grid grid-cols-1 md:grid-cols-6 gap-6 items-center border-b border-black/5 pb-8">
                   {/* Product Info */}
                   <div className="col-span-1 md:col-span-3 flex gap-6">
@@ -51,18 +56,20 @@ export default function CartPage() {
                     </div>
                   </div>
 
-                  <div className="flex justify-center">
+                  <div className="flex flex-col justify-center items-center">
                     <div className="flex items-center border border-black/10">
                       <button 
                         onClick={() => updateQuantity(item.id, Math.max(1, item.quantity - 1))} 
                         disabled={item.quantity <= 1}
-                        className="p-2 hover:bg-neutral-100 disabled:opacity-30 disabled:cursor-not-allowed"
-                      >
+                        className="p-2 hover:bg-neutral-100 disabled:opacity-30 disabled:cursor-not-allowed">
                         <Minus size={14} />
                       </button>
                       <span className="px-4 font-bold text-sm">{item.quantity}</span>
-                      <button onClick={() => updateQuantity(item.id, item.quantity + 1)} className="p-2 hover:bg-neutral-100"><Plus size={14} /></button>
+                      <button onClick={() => updateQuantity(item.id, item.quantity + 1)} disabled={item.quantity >= maxStock} className="p-2 hover:bg-neutral-100 disabled:opacity-30 disabled:cursor-not-allowed"><Plus size={14} /></button>
                     </div>
+                    {item.quantity >= maxStock && (
+                      <p className="text-xs text-red-500 mt-1">{maxStock === 0 ? 'Out of Stock' : 'Maximum stock reached'}</p>
+                    )}
                   </div>
 
                   {/* Total */}
@@ -80,7 +87,7 @@ export default function CartPage() {
                     </button>
                   </div>
                 </div>
-              ))}
+              )})}
             </div>
 
             {/* Summary */}
@@ -104,9 +111,12 @@ export default function CartPage() {
                 </div>
 
                 <div className="space-y-4">
-                  <button className="w-full bg-black text-white py-5 font-black uppercase tracking-widest hover:bg-neutral-800 transition-all flex items-center justify-center gap-3">
-                    Checkout Now <ArrowRight size={20} />
-                  </button>
+                    <Link href="/order" className="w-full bg-black text-white py-5 font-black uppercase tracking-widest hover:bg-neutral-800 transition-all flex items-center justify-center gap-3">
+                      Checkout Now <ArrowRight size={20} />
+                    </Link>
+                  <Link href="/order" className="block w-full bg-black text-white py-5 font-black uppercase tracking-widest hover:bg-neutral-800 transition-all text-center mt-4">
+                    Proceed to Order
+                  </Link>
                   <Link href="/shirts" className="block w-full text-center text-xs font-black uppercase tracking-widest py-4 border border-black/10 hover:border-black transition-all">
                     Continue Shopping
                   </Link>

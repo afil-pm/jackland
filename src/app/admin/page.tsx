@@ -19,22 +19,23 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useAuthStore, useProductStore, Product } from '@/lib/store';
+import { useAuthStore, useProductStore, Product, useOrderStore, Order } from '@/lib/store';
 import { useHydrated } from '@/lib/useHydrated';
 
 // ─── Admin Login Gate ──────────────────────────────────────────────────────────
 function AdminLoginGate({ onLogin }: { onLogin: () => void }) {
+  const [username, setUsername] = useState('');
   const [pw, setPw] = useState('');
   const [err, setErr] = useState('');
   const { adminLogin } = useAuthStore();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const ok = adminLogin(pw);
+    const ok = adminLogin(username, pw);
     if (ok) {
       onLogin();
     } else {
-      setErr('Incorrect admin password.');
+      setErr('Incorrect admin username or password.');
     }
   };
 
@@ -54,6 +55,13 @@ function AdminLoginGate({ onLogin }: { onLogin: () => void }) {
           </div>
         )}
         <form onSubmit={handleSubmit} className="space-y-4">
+          <input
+            type="text"
+            placeholder="Enter admin username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            className="w-full border border-black/20 py-4 px-4 text-sm focus:ring-1 focus:ring-black outline-none"
+          />
           <input
             type="password"
             placeholder="Enter admin password"
@@ -321,6 +329,7 @@ const AdminPanel = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const { isAdminLoggedIn, adminLogout } = useAuthStore();
   const { products } = useProductStore();
+  const { orders, clearOrders } = useOrderStore();
   const hydrated = useHydrated();
 
   const navItems = [
@@ -342,6 +351,7 @@ const AdminPanel = () => {
 
   const totalStock = products.reduce((a, p) => a + p.stock, 0);
   const totalValue = products.reduce((a, p) => a + p.price * p.stock, 0);
+  const totalSales = orders.reduce((a, o) => a + o.total, 0);
 
   return (
     <>
@@ -407,10 +417,10 @@ const AdminPanel = () => {
               <div className="space-y-10">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
                   {[
+                    { label: 'Total Sales', value: `₹${totalSales.toLocaleString()}`, trend: '', icon: TrendingUp },
+                    { label: 'Active Orders', value: orders.length, trend: '', icon: ShoppingCart },
                     { label: 'Total Products', value: products.length, trend: '', icon: Package },
-                    { label: 'Total Stock', value: totalStock, trend: '', icon: TrendingUp },
-                    { label: 'Inventory Value', value: `₹${totalValue.toLocaleString()}`, trend: '', icon: ShoppingCart },
-                    { label: 'Out of Stock', value: products.filter((p) => p.stock === 0).length, trend: '', icon: Users },
+                    { label: 'Out of Stock', value: products.filter((p) => p.stock === 0).length, trend: '', icon: AlertCircle },
                   ].map((stat, i) => (
                     <div key={i} className="bg-white p-8 border border-black/5 rounded-xl space-y-4 shadow-sm">
                       <div className="flex justify-between items-center text-neutral-400">
@@ -455,8 +465,78 @@ const AdminPanel = () => {
               </div>
             )}
 
-            {/* ── Other tabs placeholder ─────────────────────────────── */}
-            {(activeTab === 'orders' || activeTab === 'customers' || activeTab === 'settings') && (
+            {/* ── Orders ─────────────────────────────────────────────── */}
+            {activeTab === 'orders' && (
+              <div className="space-y-6">
+                <div className="flex justify-between items-center">
+                  <h3 className="font-black uppercase tracking-widest text-sm">
+                    Customer Orders ({orders.length})
+                  </h3>
+                  {orders.length > 0 && (
+                    <button
+                      onClick={clearOrders}
+                      className="bg-red-500 text-white px-6 py-3 text-[10px] font-black uppercase tracking-widest hover:bg-red-600 transition-all"
+                    >
+                      Clear Order History
+                    </button>
+                  )}
+                </div>
+
+                <div className="space-y-6">
+                  {orders.map((order) => (
+                    <div key={order.id} className="bg-white border border-black/10 p-6 rounded-xl shadow-sm space-y-4">
+                      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-black/5 pb-4">
+                        <div>
+                          <div className="flex items-center gap-3">
+                            <span className="font-black uppercase text-base">{order.id}</span>
+                            <span className="bg-green-100 text-green-800 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+                              {order.status}
+                            </span>
+                          </div>
+                          <p className="text-[10px] text-neutral-400 uppercase tracking-widest font-black mt-1">
+                            Placed on {order.date}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-[10px] text-neutral-400 uppercase tracking-widest font-black mb-0.5">
+                            Total Paid
+                          </p>
+                          <p className="text-lg font-black text-black">₹{order.total.toFixed(2)}</p>
+                        </div>
+                      </div>
+
+                      <div className="space-y-3">
+                        {order.items.map((item) => (
+                          <div key={`${item.id}-${item.size}`} className="flex justify-between items-center py-2">
+                            <div className="flex items-center gap-4">
+                              <div className="w-10 h-12 bg-neutral-100 rounded overflow-hidden flex-shrink-0 border border-black/5">
+                                <img src={item.image} alt="" className="w-full h-full object-cover" />
+                              </div>
+                              <div>
+                                <h4 className="text-xs font-black uppercase line-clamp-1">{item.name}</h4>
+                                <p className="text-[10px] text-neutral-400 uppercase tracking-widest font-bold">
+                                  Qty: {item.quantity} | Size: {item.size || 'N/A'}
+                                </p>
+                              </div>
+                            </div>
+                            <p className="text-xs font-black">₹{(item.price * item.quantity).toFixed(2)}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+
+                  {orders.length === 0 && (
+                    <div className="text-center py-16 text-neutral-400 font-bold uppercase tracking-widest border border-dashed border-black/10 rounded-xl">
+                      No orders placed yet
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* ── Customers & Settings placeholder ─────────────────────── */}
+            {(activeTab === 'customers' || activeTab === 'settings') && (
               <div className="flex items-center justify-center h-64 text-neutral-400 font-black uppercase tracking-widest">
                 {activeTab} — Coming Soon
               </div>

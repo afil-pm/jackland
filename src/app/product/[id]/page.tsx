@@ -18,6 +18,7 @@ export default function ProductDetailPage() {
   const [selectedSize, setSelectedSize] = useState('M');
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const addItem = useCartStore((state) => state.addItem);
   const { items: wishlistItems, addItem: addToWishlist, removeItem: removeFromWishlist } =
@@ -58,6 +59,27 @@ export default function ProductDetailPage() {
       removeFromWishlist(product.id);
     } else {
       addToWishlist({ id: product.id, name: product.name, price: product.price, image: product.image });
+    }
+  };
+
+  const handleShare = () => {
+    if (typeof window !== 'undefined') {
+      const url = window.location.href;
+      if (navigator.share) {
+        navigator.share({
+          title: product?.name || 'Jack Land Store',
+          text: `Check out this amazing product on Jack Land: ${product?.name}`,
+          url: url,
+        }).catch(() => {
+          navigator.clipboard.writeText(url);
+          setCopied(true);
+          setTimeout(() => setCopied(false), 2000);
+        });
+      } else {
+        navigator.clipboard.writeText(url);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      }
     }
   };
 
@@ -170,7 +192,8 @@ export default function ProductDetailPage() {
                   <span className="px-6 font-bold">{quantity}</span>
                   <button
                     onClick={() => setQuantity(quantity + 1)}
-                    className="px-6 py-2 hover:bg-neutral-100 h-full flex items-center"
+                    disabled={quantity >= product.stock}
+                    className="px-6 py-2 hover:bg-neutral-100 h-full flex items-center disabled:opacity-30 disabled:cursor-not-allowed"
                   >
                     +
                   </button>
@@ -232,11 +255,19 @@ export default function ProductDetailPage() {
                   <p className="text-[10px] text-neutral-500 uppercase">100% encrypted payments</p>
                 </div>
               </div>
-              <div className="flex items-start gap-4 cursor-pointer hover:text-neutral-500 transition-colors">
+              <div 
+                onClick={handleShare}
+                className="flex items-start gap-4 cursor-pointer hover:text-neutral-500 transition-colors"
+              >
                 <Share2 size={20} className="mt-1" />
                 <div>
                   <h4 className="text-xs font-black uppercase tracking-widest mb-1">Share Product</h4>
-                  <p className="text-[10px] text-neutral-500 uppercase">Send to a friend</p>
+                  <p className={cn(
+                    "text-[10px] uppercase transition-all",
+                    copied ? "text-green-600 font-black animate-pulse" : "text-neutral-500"
+                  )}>
+                    {copied ? "✓ Copied to clipboard!" : "Send to a friend"}
+                  </p>
                 </div>
               </div>
             </div>

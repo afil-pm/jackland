@@ -14,9 +14,10 @@ interface ProductCardProps {
   price: number;
   image: string;
   category: string;
+  stock: number;
 }
 
-export const ProductCard = ({ id, name, price, image, category }: ProductCardProps) => {
+export const ProductCard = ({ id, name, price, image, category, stock }: ProductCardProps) => {
   const [isHovered, setIsHovered] = useState(false);
   const router = useRouter();
   const addItem = useCartStore((state) => state.addItem);
@@ -61,10 +62,16 @@ export const ProductCard = ({ id, name, price, image, category }: ProductCardPro
         </Link>
 
         {/* Badges */}
-        <div className="absolute top-2 left-2 md:top-4 md:left-4">
-          <span className="bg-black text-white text-[8px] md:text-[10px] font-black uppercase px-1.5 py-0.5 md:px-2 md:py-1 tracking-widest">
-            New
-          </span>
+        <div className="absolute top-2 left-2 md:top-4 md:left-4 flex flex-col gap-2">
+          {stock === 0 ? (
+            <span className="bg-red-500 text-white text-[8px] md:text-[10px] font-black uppercase px-1.5 py-0.5 md:px-2 md:py-1 tracking-widest">
+              Out of Stock
+            </span>
+          ) : (
+            <span className="bg-black text-white text-[8px] md:text-[10px] font-black uppercase px-1.5 py-0.5 md:px-2 md:py-1 tracking-widest">
+              New
+            </span>
+          )}
         </div>
 
         {/* Action Buttons (Hover) */}
@@ -77,10 +84,18 @@ export const ProductCard = ({ id, name, price, image, category }: ProductCardPro
               className="absolute bottom-4 left-4 right-4 flex gap-2"
             >
               <button 
-                className="flex-1 bg-black text-white py-2 md:py-3 flex items-center justify-center gap-1 md:gap-2 text-[10px] md:text-xs font-bold uppercase tracking-widest hover:bg-neutral-800 transition-colors"
-                onClick={handleAddToCart}
+                className={cn(
+                  "flex-1 py-2 md:py-3 flex items-center justify-center gap-1 md:gap-2 text-[10px] md:text-xs font-bold uppercase tracking-widest transition-colors",
+                  stock > 0 
+                    ? "bg-black text-white hover:bg-neutral-800"
+                    : "bg-neutral-300 text-neutral-500 cursor-not-allowed"
+                )}
+                onClick={stock > 0 ? handleAddToCart : undefined}
+                disabled={stock === 0}
               >
-                <ShoppingBag size={14} className="md:w-4 md:h-4" /> <span className="hidden md:inline">Add to Cart</span><span className="md:hidden">Add</span>
+                <ShoppingBag size={14} className="md:w-4 md:h-4" /> 
+                <span className="hidden md:inline">{stock > 0 ? 'Add to Cart' : 'Out of Stock'}</span>
+                <span className="md:hidden">{stock > 0 ? 'Add' : 'Out'}</span>
               </button>
               <button 
                 className="bg-white text-black p-3 hover:bg-neutral-100 transition-colors border border-black/10"

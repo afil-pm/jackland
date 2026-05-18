@@ -18,7 +18,6 @@ interface CartStore {
   removeItem: (id: string) => void;
   updateQuantity: (id: string, quantity: number) => void;
   clearCart: () => void;
-  total: number;
 }
 
 export const useCartStore = create<CartStore>()(
@@ -48,9 +47,6 @@ export const useCartStore = create<CartStore>()(
           ),
         }),
       clearCart: () => set({ items: [] }),
-      get total() {
-        return get().items.reduce((acc, item) => acc + item.price * item.quantity, 0);
-      },
     }),
     {
       name: 'jack-land-cart',
@@ -106,20 +102,20 @@ export interface Product {
 }
 
 const defaultProducts: Product[] = [
-  { id: 's1', name: 'Solid Brown Formal Shirt', price: 1739, image: '/dress/shirts/shirt_1.png', category: 'Shirts', description: 'A stylish solid brown shirt that brings a modern twist to professional attire. Crafted for a crisp look and breathable comfort that lasts all day.', stock: 48 },
-  { id: 's2', name: 'Grey Double-Pocket Casual Shirt', price: 1789, image: '/dress/shirts/shirt_2.png', category: 'Shirts', description: 'This comfortable grey/slate shirt features double chest pockets, offering a casual yet refined look perfect for both work and weekends.', stock: 30 },
-  { id: 's3', name: 'Classic Maroon Shirt', price: 1919, image: '/dress/shirts/shirt_3.png', category: 'Shirts', description: 'A bold maroon shirt designed with premium cotton for a smooth finish and a perfect fit that enhances your silhouette.', stock: 25 },
-  { id: 's4', name: 'Dark Green Tailored Shirt', price: 1699, image: '/dress/shirts/shirt_4.png', category: 'Shirts', description: 'An elegant dark green shirt that adds a touch of sophistication to your wardrobe, combining classic tailoring with a modern shade.', stock: 40 },
-  { id: 's5', name: 'Vibrant Yellow Casual Shirt', price: 1999, image: '/dress/shirts/shirt_5.png', category: 'Shirts', description: 'Stand out in this bright yellow shirt. Its vibrant color and comfortable fit make it an ideal choice for a confident, energetic look.', stock: 15 },
-  { id: 's6', name: 'Executive Dark Red Shirt', price: 1599, image: '/dress/shirts/shirt_6.png', category: 'Shirts', description: 'A luxurious dark red/maroon shirt with a subtle sheen, offering a truly executive feel for important occasions and evening wear.', stock: 20 },
-  { id: 'p1', name: 'Dark Grey Textured Jeans', price: 1199, image: '/dress/pants/jeans_1.png', category: 'Jeans', description: 'These textured dark grey/black jeans are perfect for the true denim enthusiast. Featuring sturdy construction that develops a unique character over time.', stock: 35 },
-  { id: 'p2', name: 'Light Blue Cargo Jeans', price: 1299, image: '/dress/pants/jeans_2.png', category: 'Jeans', description: 'Light blue loose-fit cargo jeans with spacious side pockets. They offer ultimate comfort and utility with a trendy streetwear aesthetic.', stock: 22 },
-  { id: 'p3', name: 'Classic Blue Straight Jeans', price: 799, image: '/dress/pants/jeans_3.png', category: 'Jeans', description: 'Classic blue denim jeans with a timeless straight leg cut. Essential for any wardrobe, providing versatility and durability.', stock: 50 },
-  { id: 'p4', name: 'Dark Blue Slim Fit Jeans', price: 999, image: '/dress/pants/jeans_4.png', category: 'Jeans', description: 'Dark blue slim fit jeans that offer a sleek and urban look. Engineered with a slight stretch for maximum mobility.', stock: 18 },
-  { id: 'p5', name: 'Formal Brown Trousers', price: 899, image: '/dress/pants/pant_1.png', category: 'Pants', description: 'Formal brown trousers crafted for the modern professional. These pants deliver a sharp, tailored appearance suitable for any office setting.', stock: 28 },
-  { id: 'p6', name: 'Light Blue Tailored Trousers', price: 1359, image: '/dress/pants/pant_2.png', category: 'Pants', description: 'Elegant light blue formal trousers. Their premium fabric and impeccable tailoring ensure you look your best at formal events.', stock: 12 },
-  { id: 'p7', name: 'Grey Pinstripe Formal Pants', price: 7789, image: '/dress/pants/pant_3.png', category: 'Pants', description: 'Sophisticated grey trousers with a subtle pinstripe pattern. A classic choice that adds authority to your business attire.', stock: 10 },
-  { id: 'p8', name: 'Classic Khaki Trousers', price: 1459, image: '/dress/pants/pant_4.png', category: 'Pants', description: 'Classic khaki/beige formal trousers offering a comfortable fit and a versatile neutral color that pairs perfectly with any shirt.', stock: 33 },
+  { id: 's1', name: 'Solid Brown Formal Shirt', price: 999, image: '/dress/shirts/shirt_1.png', category: 'Shirts', description: 'A stylish solid brown shirt that brings a modern twist to professional attire. Crafted for a crisp look and breathable comfort that lasts all day.', stock: 10 },
+  { id: 's2', name: 'Grey Double-Pocket Casual Shirt', price: 899, image: '/dress/shirts/shirt_2.png', category: 'Shirts', description: 'This comfortable grey/slate shirt features double chest pockets, offering a casual yet refined look perfect for both work and weekends.', stock: 10 },
+  { id: 's3', name: 'Classic Maroon Shirt', price: 899, image: '/dress/shirts/shirt_3.png', category: 'Shirts', description: 'A bold maroon shirt designed with premium cotton for a smooth finish and a perfect fit that enhances your silhouette.', stock: 10 },
+  { id: 's4', name: 'Dark Green Tailored Shirt', price: 1199, image: '/dress/shirts/shirt_4.png', category: 'Shirts', description: 'An elegant dark green shirt that adds a touch of sophistication to your wardrobe, combining classic tailoring with a modern shade.', stock: 10 },
+  { id: 's5', name: 'Vibrant Yellow Casual Shirt', price: 799, image: '/dress/shirts/shirt_5.png', category: 'Shirts', description: 'Stand out in this bright yellow shirt. Its vibrant color and comfortable fit make it an ideal choice for a confident, energetic look.', stock: 10 },
+  { id: 's6', name: 'Executive Dark Red Shirt', price: 1299, image: '/dress/shirts/shirt_6.png', category: 'Shirts', description: 'A luxurious dark red/maroon shirt with a subtle sheen, offering a truly executive feel for important occasions and evening wear.', stock: 10 },
+  { id: 'p1', name: 'Dark Grey Textured Jeans', price: 699, image: '/dress/pants/jeans_1.png', category: 'Jeans', description: 'These textured dark grey/black jeans are perfect for the true denim enthusiast. Featuring sturdy construction that develops a unique character over time.', stock: 10 },
+  { id: 'p2', name: 'Light Blue Cargo Jeans', price: 999, image: '/dress/pants/jeans_2.png', category: 'Jeans', description: 'Light blue loose-fit cargo jeans with spacious side pockets. They offer ultimate comfort and utility with a trendy streetwear aesthetic.', stock: 10 },
+  { id: 'p3', name: 'Classic Blue Straight Jeans', price: 1499, image: '/dress/pants/jeans_3.png', category: 'Jeans', description: 'Classic blue denim jeans with a timeless straight leg cut. Essential for any wardrobe, providing versatility and durability.', stock: 10 },
+  { id: 'p4', name: 'Dark Blue Slim Fit Jeans', price: 999, image: '/dress/pants/jeans_4.png', category: 'Jeans', description: 'Dark blue slim fit jeans that offer a sleek and urban look. Engineered with a slight stretch for maximum mobility.', stock: 10 },
+  { id: 'p5', name: 'Formal Brown Trousers', price: 899, image: '/dress/pants/pant_1.png', category: 'Pants', description: 'Formal brown trousers crafted for the modern professional. These pants deliver a sharp, tailored appearance suitable for any office setting.', stock: 10 },
+  { id: 'p6', name: 'Light Blue Tailored Trousers', price: 1399, image: '/dress/pants/pant_2.png', category: 'Pants', description: 'Elegant light blue formal trousers. Their premium fabric and impeccable tailoring ensure you look your best at formal events.', stock: 10 },
+  { id: 'p7', name: 'Grey Pinstripe Formal Pants', price: 749, image: '/dress/pants/pant_3.png', category: 'Pants', description: 'Sophisticated grey trousers with a subtle pinstripe pattern. A classic choice that adds authority to your business attire.', stock: 10 },
+  { id: 'p8', name: 'Classic Khaki Trousers', price: 1399, image: '/dress/pants/pant_4.png', category: 'Pants', description: 'Classic khaki/beige formal trousers offering a comfortable fit and a versatile neutral color that pairs perfectly with any shirt.', stock: 10 },
 ];
 
 interface ProductStore {
@@ -159,13 +155,14 @@ interface AuthStore {
   isAdminLoggedIn: boolean;
   register: (name: string, email: string, password: string) => boolean;
   login: (email: string, password: string) => boolean;
-  adminLogin: (password: string) => boolean;
+  adminLogin: (username: string, password: string) => boolean;
   logout: () => void;
   adminLogout: () => void;
 }
 
-// Admin password (hardcoded – change this to your own)
-const ADMIN_PASSWORD = 'jackland@admin2024';
+// Admin credentials
+const ADMIN_USERNAME = 'admin';
+const ADMIN_PASSWORD = '1010_Admin@JackLand.com';
 
 export const useAuthStore = create<AuthStore>()(
   persist(
@@ -201,9 +198,9 @@ export const useAuthStore = create<AuthStore>()(
           return false;
         }
       },
-      adminLogin: (password) => {
-        if (password === ADMIN_PASSWORD) {
-          set({ isAdminLoggedIn: true });
+      adminLogin: (username, password) => {
+        if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+          set({ isAdminLoggedIn: true, user: { name: username, email: '' } });
           return true;
         }
         return false;
@@ -213,6 +210,45 @@ export const useAuthStore = create<AuthStore>()(
     }),
     {
       name: 'jack-land-auth',
+      storage: createJSONStorage(() => localStorage),
+    }
+  )
+);
+
+// ─── ORDER STORE ──────────────────────────────────────────────────────────────
+
+export interface OrderItem {
+  id: string;
+  name: string;
+  price: number;
+  image: string;
+  quantity: number;
+  size?: string;
+}
+
+export interface Order {
+  id: string;
+  items: OrderItem[];
+  total: number;
+  date: string;
+  status: string;
+}
+
+interface OrderStore {
+  orders: Order[];
+  addOrder: (order: Order) => void;
+  clearOrders: () => void;
+}
+
+export const useOrderStore = create<OrderStore>()(
+  persist(
+    (set, get) => ({
+      orders: [],
+      addOrder: (order) => set({ orders: [order, ...get().orders] }),
+      clearOrders: () => set({ orders: [] }),
+    }),
+    {
+      name: 'jack-land-orders',
       storage: createJSONStorage(() => localStorage),
     }
   )

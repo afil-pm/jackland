@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { Trash2, Plus, Minus, ShoppingBag, ArrowRight, ShieldCheck } from 'lucide-react';
+import { Trash2, Plus, Minus, ShoppingBag, ArrowRight, ShieldCheck, Home } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useCartStore, useProductStore } from '@/lib/store';
 import { useHydrated } from '@/lib/useHydrated';
@@ -23,9 +23,14 @@ export default function CartPage() {
   return (
     <div className="bg-white text-black min-h-screen py-24">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h1 className="text-5xl font-black uppercase tracking-tighter mb-12 flex items-center gap-4">
-          Your Bag <span className="text-lg font-bold bg-black text-white px-3 py-1 rounded-full">{items.length}</span>
-        </h1>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-12 border-b border-black/10 pb-6">
+          <h1 className="text-5xl font-black uppercase tracking-tighter flex items-center gap-4">
+            Your Bag <span className="text-lg font-bold bg-black text-white px-3 py-1 rounded-full">{items.length}</span>
+          </h1>
+          <Link href="/" className="text-xs font-black uppercase tracking-widest hover:text-neutral-500 transition-colors flex items-center gap-2">
+            <Home size={14} /> Back to Home
+          </Link>
+        </div>
 
         {items.length > 0 ? (
           <div className="flex flex-col lg:flex-row gap-16">
@@ -138,9 +143,14 @@ export default function CartPage() {
               </div>
             </div>
             <p className="text-xl font-bold uppercase tracking-widest">Your bag is empty</p>
-            <Link href="/shirts" className="inline-block bg-black text-white px-12 py-5 font-black uppercase tracking-widest hover:bg-neutral-800 transition-all">
-              Start Shopping
-            </Link>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+              <Link href="/shirts" className="inline-block bg-black text-white px-12 py-5 font-black uppercase tracking-widest hover:bg-neutral-800 transition-all">
+                Start Shopping
+              </Link>
+              <Link href="/" className="inline-block border border-black/10 hover:border-black px-12 py-5 font-black uppercase tracking-widest transition-all flex items-center gap-2">
+                <Home size={16} /> Back to Home
+              </Link>
+            </div>
           </div>
         )}
       </div>

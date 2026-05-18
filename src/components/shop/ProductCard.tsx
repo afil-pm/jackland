@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Heart, ShoppingBag, Share2, Eye } from 'lucide-react';
+import { Heart, ShoppingBag, Share2, Eye, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { useCartStore, useWishlistStore } from '@/lib/store';
@@ -19,6 +19,7 @@ interface ProductCardProps {
 
 export const ProductCard = ({ id, name, price, image, category, stock }: ProductCardProps) => {
   const [isHovered, setIsHovered] = useState(false);
+  const [copied, setCopied] = useState(false);
   const router = useRouter();
   const addItem = useCartStore((state) => state.addItem);
   const { items: wishlistItems, addItem: addToWishlist, removeItem: removeFromWishlist } = useWishlistStore();
@@ -38,6 +39,29 @@ export const ProductCard = ({ id, name, price, image, category, stock }: Product
       removeFromWishlist(id);
     } else {
       addToWishlist({ id, name, price, image });
+    }
+  };
+
+  const handleShare = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (typeof window !== 'undefined') {
+      const url = `${window.location.origin}/product/${id}`;
+      if (navigator.share) {
+        navigator.share({
+          title: name,
+          text: `Check out ${name} on Jack Land!`,
+          url: url,
+        }).catch(() => {
+          navigator.clipboard.writeText(url);
+          setCopied(true);
+          setTimeout(() => setCopied(false), 2000);
+        });
+      } else {
+        navigator.clipboard.writeText(url);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      }
     }
   };
 
@@ -122,8 +146,14 @@ export const ProductCard = ({ id, name, price, image, category, stock }: Product
           >
             <Heart size={18} fill={isLiked ? "currentColor" : "none"} />
           </button>
-          <button className="bg-white text-black p-2 rounded-full shadow-sm hover:bg-black hover:text-white transition-all duration-300">
-            <Share2 size={18} />
+          <button 
+            onClick={handleShare}
+            className={cn(
+              "p-2 rounded-full shadow-sm transition-all duration-300",
+              copied ? "bg-green-600 text-white" : "bg-white text-black hover:bg-black hover:text-white border border-black/5"
+            )}
+          >
+            {copied ? <Check size={18} /> : <Share2 size={18} />}
           </button>
         </div>
       </div>

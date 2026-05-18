@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Mail, Lock, ArrowRight, User, AlertCircle, CheckCircle } from 'lucide-react';
+import { Mail, Lock, ArrowRight, User, AlertCircle, CheckCircle, Home, ArrowLeft } from 'lucide-react';
 import { useAuthStore } from '@/lib/store';
 
 export default function AccountPage() {
@@ -93,6 +93,14 @@ export default function AccountPage() {
           >
             Sign Out
           </button>
+          <div className="pt-2">
+            <Link
+              href="/"
+              className="text-xs font-black uppercase tracking-widest hover:text-neutral-500 transition-colors flex items-center gap-2 justify-center"
+            >
+              <Home size={14} /> Back to Home
+            </Link>
+          </div>
         </motion.div>
       </div>
     );
@@ -105,6 +113,12 @@ export default function AccountPage() {
         animate={{ opacity: 1, scale: 1 }}
         className="max-w-md w-full bg-white border border-black/10 p-10 md:p-16 shadow-2xl shadow-black/5"
       >
+        <div className="flex justify-between items-center mb-6 border-b border-black/5 pb-4">
+          <Link href="/" className="text-[10px] font-black uppercase tracking-widest text-neutral-400 hover:text-black transition-colors flex items-center gap-1.5">
+            <ArrowLeft size={12} /> Back to Home
+          </Link>
+          <span className="text-[9px] font-black uppercase tracking-widest text-neutral-300">JACK LAND</span>
+        </div>
         <div className="text-center mb-12">
           <h1 className="text-4xl font-black uppercase tracking-tighter mb-4">
             {isLogin ? 'Sign In' : 'Create Account'}

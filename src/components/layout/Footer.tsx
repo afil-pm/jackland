@@ -43,7 +43,7 @@ export const Footer = () => {
           <div>
             <h3 className="text-lg font-bold mb-6 uppercase tracking-widest">Support</h3>
             <ul className="space-y-4 text-sm text-neutral-400">
-              <li><Link href="/track" className="hover:text-white transition-colors">Track Order</Link></li>
+              <li><Link href="/track-order" className="hover:text-white transition-colors">Track Order</Link></li>
               <li><Link href="/shipping" className="hover:text-white transition-colors">Shipping Policy</Link></li>
               <li><Link href="/returns" className="hover:text-white transition-colors">Returns & Exchanges</Link></li>
               <li><Link href="/contact" className="hover:text-white transition-colors">Contact Us</Link></li>

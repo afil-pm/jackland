@@ -232,11 +232,18 @@ export interface Order {
   total: number;
   date: string;
   status: string;
+  customerName?: string;
+  customerEmail?: string;
+  customerPhone?: string;
+  shippingAddress?: string;
+  isConfirmed?: boolean;
+  confirmedAt?: string;
 }
 
 interface OrderStore {
   orders: Order[];
   addOrder: (order: Order) => void;
+  updateOrderStatus: (id: string, status: string, additionalUpdates?: Partial<Order>) => void;
   clearOrders: () => void;
 }
 
@@ -245,6 +252,12 @@ export const useOrderStore = create<OrderStore>()(
     (set, get) => ({
       orders: [],
       addOrder: (order) => set({ orders: [order, ...get().orders] }),
+      updateOrderStatus: (id, status, additionalUpdates = {}) =>
+        set({
+          orders: get().orders.map((o) =>
+            o.id === id ? { ...o, status, ...additionalUpdates } : o
+          ),
+        }),
       clearOrders: () => set({ orders: [] }),
     }),
     {

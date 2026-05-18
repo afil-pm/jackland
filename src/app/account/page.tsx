@@ -75,10 +75,10 @@ export default function AccountPage() {
           </div>
           <div className="grid grid-cols-2 gap-4">
             <Link
-              href="/orders"
+              href="/track-order"
               className="py-3 border border-black/10 hover:border-black transition-all text-xs font-bold uppercase tracking-widest text-center"
             >
-              My Orders
+              Track Orders
             </Link>
             <Link
               href="/wishlist"

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import {
   LayoutDashboard,
   Package,
@@ -17,6 +18,7 @@ import {
   X,
   Lock,
   AlertCircle,
+  Mail,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuthStore, useProductStore, Product, useOrderStore, Order } from '@/lib/store';
@@ -327,10 +329,28 @@ const AdminPanel = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [search, setSearch] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
   const { isAdminLoggedIn, adminLogout } = useAuthStore();
   const { products } = useProductStore();
-  const { orders, clearOrders } = useOrderStore();
+  const { orders, updateOrderStatus, clearOrders } = useOrderStore();
   const hydrated = useHydrated();
+
+  const handleSendConfirmation = (order: Order) => {
+    updateOrderStatus(order.id, 'Confirmed', { 
+      isConfirmed: true, 
+      confirmedAt: new Date().toLocaleDateString('en-IN', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      }) 
+    });
+    setToastMessage(`✓ Confirmation dispatch simulated! Email sent to ${order.customerName}`);
+    setTimeout(() => {
+      setToastMessage('');
+    }, 4500);
+  };
 
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -523,6 +543,57 @@ const AdminPanel = () => {
                           </div>
                         ))}
                       </div>
+
+                      {order.customerName && (
+                        <div className="bg-neutral-50 p-4 rounded-lg border border-black/5 grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs mt-3">
+                          <div>
+                            <p className="text-[9px] uppercase tracking-widest text-neutral-400 font-bold mb-1">Customer Profile</p>
+                            <p className="font-bold text-black">{order.customerName}</p>
+                            <p className="text-neutral-500">{order.customerEmail} | {order.customerPhone}</p>
+                          </div>
+                          <div>
+                            <p className="text-[9px] uppercase tracking-widest text-neutral-400 font-bold mb-1">Shipping Destination</p>
+                            <p className="text-neutral-600 font-bold leading-relaxed">{order.shippingAddress}</p>
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="flex flex-wrap gap-4 items-center justify-between border-t border-black/5 pt-4 mt-4">
+                        <div className="flex gap-2 items-center">
+                          <span className="text-[10px] font-black uppercase tracking-widest text-neutral-400">Update Status:</span>
+                          <select
+                            value={order.status}
+                            onChange={(e) => updateOrderStatus(order.id, e.target.value)}
+                            className="bg-neutral-50 border border-black/10 rounded px-2 py-1 text-xs font-bold outline-none cursor-pointer"
+                          >
+                            <option value="Processing">Processing</option>
+                            <option value="Confirmed">Confirmed</option>
+                            <option value="Shipped">Shipped</option>
+                            <option value="Delivered">Delivered</option>
+                          </select>
+                        </div>
+
+                        <div className="flex gap-2">
+                          <Link
+                            href={`/track-order?id=${order.id}`}
+                            target="_blank"
+                            className="text-[9px] bg-neutral-100 hover:bg-neutral-200 transition-colors text-black font-black uppercase tracking-widest px-4 py-2 border border-black/5 flex items-center gap-1.5"
+                          >
+                            Track Link ↗
+                          </Link>
+
+                          <button
+                            onClick={() => handleSendConfirmation(order)}
+                            className={`text-[9px] font-black uppercase tracking-widest px-4 py-2 flex items-center gap-1.5 transition-all ${
+                              order.isConfirmed
+                                ? 'bg-green-50 text-green-700 border border-green-200'
+                                : 'bg-black text-white hover:bg-neutral-800'
+                            }`}
+                          >
+                            <Mail size={12} /> {order.isConfirmed ? '✓ Confirmation Sent' : 'Send Order Confirmation'}
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   ))}
 
@@ -544,6 +615,11 @@ const AdminPanel = () => {
           </main>
         </div>
       </div>
+      {toastMessage && (
+        <div className="fixed bottom-8 right-8 bg-black text-white text-xs font-bold uppercase tracking-widest px-6 py-4 shadow-2xl border border-white/10 z-50 animate-bounce flex items-center gap-3">
+          <Mail size={16} className="text-green-400" /> {toastMessage}
+        </div>
+      )}
     </>
   );
 };

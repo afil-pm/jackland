@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Heart, ShoppingBag, Share2, Eye } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -17,6 +18,7 @@ interface ProductCardProps {
 
 export const ProductCard = ({ id, name, price, image, category }: ProductCardProps) => {
   const [isHovered, setIsHovered] = useState(false);
+  const router = useRouter();
   const addItem = useCartStore((state) => state.addItem);
   const { items: wishlistItems, addItem: addToWishlist, removeItem: removeFromWishlist } = useWishlistStore();
   
@@ -82,7 +84,11 @@ export const ProductCard = ({ id, name, price, image, category }: ProductCardPro
               </button>
               <button 
                 className="bg-white text-black p-3 hover:bg-neutral-100 transition-colors border border-black/10"
-                onClick={() => console.log('Quick view')}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  router.push(`/product/${id}`);
+                }}
               >
                 <Eye size={16} />
               </button>
@@ -112,7 +118,7 @@ export const ProductCard = ({ id, name, price, image, category }: ProductCardPro
         <Link href={`/product/${id}`}>
           <h3 className="text-xs md:text-sm font-black uppercase tracking-tight mb-1 md:mb-2 hover:underline line-clamp-1">{name}</h3>
         </Link>
-        <p className="text-sm md:text-lg font-black">${price.toFixed(2)}</p>
+        <p className="text-sm md:text-lg font-black">₹{price.toFixed(2)}</p>
       </div>
     </motion.div>
   );

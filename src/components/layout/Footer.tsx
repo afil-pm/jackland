@@ -1,6 +1,8 @@
+"use client";
+
 import React from 'react';
 import Link from 'next/link';
-import { Mail, Phone, MapPin } from 'lucide-react';
+import { Mail, Phone, MapPin, ArrowUp } from 'lucide-react';
 
 export const Footer = () => {
   return (
@@ -59,10 +61,16 @@ export const Footer = () => {
           </div>
         </div>
 
-        <div className="pt-8 border-t border-white/10 text-center">
+        <div className="pt-8 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-xs text-neutral-500">
             &copy; {new Date().getFullYear()} Jack Land Jeans. All rights reserved.
           </p>
+          <button 
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest hover:text-neutral-300 transition-colors"
+          >
+            Back to Top <ArrowUp size={14} />
+          </button>
         </div>
       </div>
     </footer>

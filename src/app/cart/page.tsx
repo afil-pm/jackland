@@ -5,13 +5,19 @@ import Link from 'next/link';
 import { Trash2, Plus, Minus, ShoppingBag, ArrowRight, ShieldCheck } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useCartStore } from '@/lib/store';
+import { useHydrated } from '@/lib/useHydrated';
 
 export default function CartPage() {
   const { items, updateQuantity, removeItem } = useCartStore();
+  const hydrated = useHydrated();
 
   const subtotal = items.reduce((acc, item) => acc + (item.price * item.quantity), 0);
-  const shipping = subtotal > 150 ? 0 : 15.00;
+  const shipping = subtotal > 12500 ? 0 : 50.00;
   const total = subtotal + shipping;
+
+  if (!hydrated) {
+    return <div className="bg-white min-h-screen py-24 flex items-center justify-center"><p className="text-neutral-400 font-bold uppercase tracking-widest">Loading cart...</p></div>;
+  }
 
   return (
     <div className="bg-white text-black min-h-screen py-24">
@@ -41,13 +47,19 @@ export default function CartPage() {
                     <div className="flex flex-col justify-center">
                       <h3 className="text-sm font-black uppercase tracking-tight mb-1">{item.name}</h3>
                       <p className="text-xs text-neutral-500 uppercase tracking-widest mb-2">Size: {item.size}</p>
-                      <p className="text-sm font-black">${item.price.toFixed(2)}</p>
+                      <p className="text-sm font-black">₹{item.price.toFixed(2)}</p>
                     </div>
                   </div>
 
                   <div className="flex justify-center">
                     <div className="flex items-center border border-black/10">
-                      <button onClick={() => updateQuantity(item.id, item.quantity - 1)} className="p-2 hover:bg-neutral-100"><Minus size={14} /></button>
+                      <button 
+                        onClick={() => updateQuantity(item.id, Math.max(1, item.quantity - 1))} 
+                        disabled={item.quantity <= 1}
+                        className="p-2 hover:bg-neutral-100 disabled:opacity-30 disabled:cursor-not-allowed"
+                      >
+                        <Minus size={14} />
+                      </button>
                       <span className="px-4 font-bold text-sm">{item.quantity}</span>
                       <button onClick={() => updateQuantity(item.id, item.quantity + 1)} className="p-2 hover:bg-neutral-100"><Plus size={14} /></button>
                     </div>
@@ -55,12 +67,12 @@ export default function CartPage() {
 
                   {/* Total */}
                   <div className="text-center font-black">
-                    ${(item.price * item.quantity).toFixed(2)}
+                    ₹{(item.price * item.quantity).toFixed(2)}
                   </div>
 
                   {/* Action */}
                   <div className="flex justify-end">
-                    <button 
+                    <button
                       onClick={() => removeItem(item.id)}
                       className="p-2 text-neutral-400 hover:text-red-600 transition-colors"
                     >
@@ -75,19 +87,19 @@ export default function CartPage() {
             <div className="flex-1">
               <div className="bg-neutral-50 p-8 border border-black/5 space-y-8 sticky top-32">
                 <h2 className="text-xl font-black uppercase tracking-widest border-b border-black/10 pb-4">Order Summary</h2>
-                
+
                 <div className="space-y-4">
                   <div className="flex justify-between text-sm uppercase tracking-widest font-bold">
                     <span>Subtotal</span>
-                    <span>${subtotal.toFixed(2)}</span>
+                    <span>₹{subtotal.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between text-sm uppercase tracking-widest font-bold">
                     <span>Shipping</span>
-                    <span>{shipping === 0 ? 'FREE' : `$${shipping.toFixed(2)}`}</span>
+                    <span>{shipping === 0 ? 'FREE' : `₹${shipping.toFixed(2)}`}</span>
                   </div>
                   <div className="flex justify-between text-sm uppercase tracking-widest font-bold pt-4 border-t border-black/10">
                     <span className="text-lg font-black">Total</span>
-                    <span className="text-lg font-black">${total.toFixed(2)}</span>
+                    <span className="text-lg font-black">₹{total.toFixed(2)}</span>
                   </div>
                 </div>
 

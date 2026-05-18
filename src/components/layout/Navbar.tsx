@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Search, ShoppingCart, Heart, User, Menu, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useCartStore, useWishlistStore } from '@/lib/store';
+import { useHydrated } from '@/lib/useHydrated';
 
 export const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -13,6 +14,26 @@ export const Navbar = () => {
   const router = useRouter();
   const cartItems = useCartStore((state) => state.items);
   const wishlistItems = useWishlistStore((state) => state.items);
+  const hydrated = useHydrated();
+  const cartCount = hydrated ? cartItems.length : 0;
+  const wishlistCount = hydrated ? wishlistItems.length : 0;
+  const [isVisible, setIsVisible] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      if (currentScrollY > lastScrollY && currentScrollY > 80) {
+        setIsVisible(false);
+      } else {
+        setIsVisible(true);
+      }
+      setLastScrollY(currentScrollY);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [lastScrollY]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,7 +43,10 @@ export const Navbar = () => {
   };
 
   return (
-    <nav className="sticky top-0 z-50 w-full bg-white text-black border-b border-black/10 transition-all duration-300">
+    <nav className={cn(
+      "sticky top-0 z-50 w-full bg-white text-black border-b border-black/10 transition-transform duration-300",
+      isVisible ? "translate-y-0" : "-translate-y-full"
+    )}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
@@ -61,13 +85,13 @@ export const Navbar = () => {
               <Link href="/wishlist" className="relative group">
                 <Heart size={22} className="group-hover:scale-110 transition-transform" />
                 <span className="absolute -top-1 -right-1 bg-black text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full">
-                  {wishlistItems.length}
+                  {wishlistCount}
                 </span>
               </Link>
               <Link href="/cart" className="relative group">
                 <ShoppingCart size={22} className="group-hover:scale-110 transition-transform" />
                 <span className="absolute -top-1 -right-1 bg-black text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full">
-                  {cartItems.length}
+                  {cartCount}
                 </span>
               </Link>
               <Link href="/account">

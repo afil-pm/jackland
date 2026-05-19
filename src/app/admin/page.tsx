@@ -33,11 +33,15 @@ function AdminLoginGate({ onLogin }: { onLogin: () => void }) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const ok = await adminLogin(username, pw);
-    if (ok) {
-      onLogin();
-    } else {
-      setErr('Incorrect admin username or password.');
+    try {
+      const result = await adminLogin(username, pw);
+      if (result.success) {
+        onLogin();
+      } else {
+        setErr(result.error || 'Incorrect admin username or password.');
+      }
+    } catch (error: any) {
+      setErr(error.message || 'Cannot connect to backend server.');
     }
   };
 

@@ -250,7 +250,7 @@ interface AuthStore {
   adminToken: string | null;
   register: (name: string, email: string, password: string) => Promise<boolean>;
   login: (email: string, password: string) => Promise<boolean>;
-  adminLogin: (username: string, password: string) => Promise<boolean>;
+  adminLogin: (username: string, password: string) => Promise<{success: boolean; error?: string}>;
   logout: () => void;
   adminLogout: () => void;
 }
@@ -263,7 +263,6 @@ export const useAuthStore = create<AuthStore>()(
       adminToken: null,
       register: async (name, email, password) => {
         try {
-          // Check backend or fallback locally
           const res = await fetch(`${API_URL}/api/admin/register`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -303,19 +302,20 @@ export const useAuthStore = create<AuthStore>()(
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username, password }),
           });
-          if (res.ok) {
-            const data = await res.json();
+          const data = await res.json();
+          
+          if (res.ok && data.success) {
             set({
               isAdminLoggedIn: true,
               adminToken: data.token,
               user: { name: data.admin.name, email: data.admin.email },
             });
-            return true;
+            return { success: true };
           }
-          return false;
+          return { success: false, error: data.error || data.message || 'Invalid credentials' };
         } catch (e) {
           console.error('Admin API login failed:', e);
-          return false;
+          return { success: false, error: 'Cannot connect to backend server. Is it running?' };
         }
       },
       logout: () => set({ user: null }),

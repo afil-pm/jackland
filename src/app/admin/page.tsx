@@ -31,9 +31,9 @@ function AdminLoginGate({ onLogin }: { onLogin: () => void }) {
   const [err, setErr] = useState('');
   const { adminLogin } = useAuthStore();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const ok = adminLogin(username, pw);
+    const ok = await adminLogin(username, pw);
     if (ok) {
       onLogin();
     } else {
@@ -91,8 +91,8 @@ function ProductRow({ product }: { product: Product }) {
   const [stock, setStock] = useState(String(product.stock));
   const { updateProduct, removeProduct } = useProductStore();
 
-  const save = () => {
-    updateProduct(product.id, {
+  const save = async () => {
+    await updateProduct(product.id, {
       name,
       price: parseFloat(price) || product.price,
       stock: parseInt(stock) || product.stock,
@@ -197,7 +197,7 @@ function ProductRow({ product }: { product: Product }) {
 
 // ─── Add Product Modal ────────────────────────────────────────────────────────
 function AddProductModal({ onClose }: { onClose: () => void }) {
-  const { addProduct, products } = useProductStore();
+  const { addProduct } = useProductStore();
   const [form, setForm] = useState({
     name: '',
     price: '',
@@ -206,21 +206,46 @@ function AddProductModal({ onClose }: { onClose: () => void }) {
     image: '',
     description: '',
   });
+  const [files, setFiles] = useState<FileList | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
-  const handleAdd = (e: React.FormEvent) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      setFiles(e.target.files);
+    }
+  };
+
+  const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.name || !form.price) return;
-    const newId = `custom-${Date.now()}`;
-    addProduct({
-      id: newId,
-      name: form.name,
-      price: parseFloat(form.price),
-      stock: parseInt(form.stock) || 0,
-      category: form.category,
-      image: form.image || '/dress/shirts/shirt_1.png',
-      description: form.description,
-    });
-    onClose();
+    setIsUploading(true);
+
+    try {
+      const formData = new FormData();
+      formData.append('name', form.name);
+      formData.append('price', form.price);
+      formData.append('stock', form.stock || '0');
+      formData.append('category', form.category);
+      formData.append('description', form.description);
+
+      if (files && files.length > 0) {
+        for (let i = 0; i < files.length; i++) {
+          formData.append('images', files[i]);
+        }
+      } else if (form.image) {
+        formData.append('images', form.image);
+      } else {
+        formData.append('images', '/dress/shirts/shirt_1.png');
+      }
+
+      await addProduct(formData);
+      onClose();
+    } catch (e) {
+      console.error(e);
+      alert('Failed to upload product.');
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const inputCls =
@@ -231,7 +256,7 @@ function AddProductModal({ onClose }: { onClose: () => void }) {
       <div className="bg-white w-full max-w-lg p-8 rounded-xl shadow-2xl space-y-6">
         <div className="flex justify-between items-center">
           <h2 className="text-xl font-black uppercase tracking-tight">Add New Product</h2>
-          <button onClick={onClose} className="p-2 hover:bg-neutral-100 rounded-full">
+          <button onClick={onClose} className="p-2 hover:bg-neutral-100 rounded-full" disabled={isUploading}>
             <X size={20} />
           </button>
         </div>
@@ -243,6 +268,7 @@ function AddProductModal({ onClose }: { onClose: () => void }) {
               </label>
               <input
                 required
+                disabled={isUploading}
                 className={inputCls}
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
@@ -254,6 +280,7 @@ function AddProductModal({ onClose }: { onClose: () => void }) {
                 Category
               </label>
               <select
+                disabled={isUploading}
                 className={inputCls}
                 value={form.category}
                 onChange={(e) => setForm({ ...form, category: e.target.value })}
@@ -269,6 +296,7 @@ function AddProductModal({ onClose }: { onClose: () => void }) {
               </label>
               <input
                 required
+                disabled={isUploading}
                 type="number"
                 className={inputCls}
                 value={form.price}
@@ -281,6 +309,7 @@ function AddProductModal({ onClose }: { onClose: () => void }) {
                 Stock
               </label>
               <input
+                disabled={isUploading}
                 type="number"
                 className={inputCls}
                 value={form.stock}
@@ -291,9 +320,23 @@ function AddProductModal({ onClose }: { onClose: () => void }) {
           </div>
           <div>
             <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 mb-1 block">
-              Image Path (e.g. /dress/shirts/shirt_1.png)
+              Upload Images (Cloudinary)
             </label>
             <input
+              type="file"
+              multiple
+              accept="image/*"
+              disabled={isUploading}
+              onChange={handleFileChange}
+              className="w-full text-xs text-neutral-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-none file:border-0 file:text-xs file:font-black file:uppercase file:bg-black file:text-white hover:file:bg-neutral-800 file:cursor-pointer cursor-pointer border border-black/20"
+            />
+          </div>
+          <div>
+            <label className="text-[10px] font-black uppercase tracking-widest text-neutral-400 mb-1 block">
+              Or Image URL
+            </label>
+            <input
+              disabled={isUploading}
               className={inputCls}
               value={form.image}
               onChange={(e) => setForm({ ...form, image: e.target.value })}
@@ -305,6 +348,7 @@ function AddProductModal({ onClose }: { onClose: () => void }) {
               Description
             </label>
             <textarea
+              disabled={isUploading}
               rows={3}
               className={inputCls}
               value={form.description}
@@ -314,9 +358,16 @@ function AddProductModal({ onClose }: { onClose: () => void }) {
           </div>
           <button
             type="submit"
-            className="w-full bg-black text-white py-4 font-black uppercase tracking-widest hover:bg-neutral-800 transition-all flex items-center justify-center gap-2"
+            disabled={isUploading}
+            className="w-full bg-black text-white py-4 font-black uppercase tracking-widest hover:bg-neutral-800 transition-all flex items-center justify-center gap-2 disabled:bg-neutral-400 disabled:cursor-not-allowed"
           >
-            <Plus size={18} /> Add Product
+            {isUploading ? (
+              <span className="animate-pulse">Uploading to Cloudinary...</span>
+            ) : (
+              <>
+                <Plus size={18} /> Add Product
+              </>
+            )}
           </button>
         </form>
       </div>

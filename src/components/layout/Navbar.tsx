@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Search, ShoppingCart, Heart, User, Menu, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useCartStore, useWishlistStore } from '@/lib/store';
+import { useCartStore, useWishlistStore, useProductStore } from '@/lib/store';
 import { useHydrated } from '@/lib/useHydrated';
 
 export const Navbar = () => {
@@ -19,6 +19,10 @@ export const Navbar = () => {
   const wishlistCount = hydrated ? wishlistItems.length : 0;
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
+
+  useEffect(() => {
+    useProductStore.getState().syncProducts();
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {

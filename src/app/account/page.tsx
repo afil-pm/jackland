@@ -18,7 +18,7 @@ export default function AccountPage() {
   const { user, login, register, logout } = useAuthStore();
   const router = useRouter();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setSuccess('');
@@ -37,7 +37,7 @@ export default function AccountPage() {
     }
 
     if (isLogin) {
-      const ok = login(email, password);
+      const ok = await login(email, password);
       if (ok) {
         setSuccess('Signed in successfully! Redirecting...');
         setTimeout(() => router.push('/'), 1000);
@@ -45,7 +45,7 @@ export default function AccountPage() {
         setError('Invalid email or password.');
       }
     } else {
-      const ok = register(name, email, password);
+      const ok = await register(name, email, password);
       if (ok) {
         setSuccess('Account created! Welcome to Jack Land.');
         setTimeout(() => router.push('/'), 1000);

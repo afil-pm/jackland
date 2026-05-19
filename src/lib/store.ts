@@ -1,6 +1,8 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+
 // ─── CART ────────────────────────────────────────────────────────────────────
 
 interface CartItem {
@@ -89,55 +91,147 @@ export const useWishlistStore = create<WishlistStore>()(
   )
 );
 
-// ─── PRODUCT STORE (Admin-editable) ──────────────────────────────────────────
+// ─── PRODUCT STORE (Backend Synced) ──────────────────────────────────────────
 
 export interface Product {
   id: string;
+  _id?: string;
   name: string;
   price: number;
   image: string;
+  images?: string[];
   category: string;
   description: string;
   stock: number;
 }
 
 const defaultProducts: Product[] = [
-  { id: 's1', name: 'Solid Brown Formal Shirt', price: 999, image: '/dress/shirts/shirt_1.png', category: 'Shirts', description: 'A stylish solid brown shirt that brings a modern twist to professional attire. Crafted for a crisp look and breathable comfort that lasts all day.', stock: 10 },
-  { id: 's2', name: 'Grey Double-Pocket Casual Shirt', price: 899, image: '/dress/shirts/shirt_2.png', category: 'Shirts', description: 'This comfortable grey/slate shirt features double chest pockets, offering a casual yet refined look perfect for both work and weekends.', stock: 10 },
-  { id: 's3', name: 'Classic Maroon Shirt', price: 899, image: '/dress/shirts/shirt_3.png', category: 'Shirts', description: 'A bold maroon shirt designed with premium cotton for a smooth finish and a perfect fit that enhances your silhouette.', stock: 10 },
-  { id: 's4', name: 'Dark Green Tailored Shirt', price: 1199, image: '/dress/shirts/shirt_4.png', category: 'Shirts', description: 'An elegant dark green shirt that adds a touch of sophistication to your wardrobe, combining classic tailoring with a modern shade.', stock: 10 },
-  { id: 's5', name: 'Vibrant Yellow Casual Shirt', price: 799, image: '/dress/shirts/shirt_5.png', category: 'Shirts', description: 'Stand out in this bright yellow shirt. Its vibrant color and comfortable fit make it an ideal choice for a confident, energetic look.', stock: 10 },
-  { id: 's6', name: 'Executive Dark Red Shirt', price: 1299, image: '/dress/shirts/shirt_6.png', category: 'Shirts', description: 'A luxurious dark red/maroon shirt with a subtle sheen, offering a truly executive feel for important occasions and evening wear.', stock: 10 },
-  { id: 'p1', name: 'Dark Grey Textured Jeans', price: 699, image: '/dress/pants/jeans_1.png', category: 'Jeans', description: 'These textured dark grey/black jeans are perfect for the true denim enthusiast. Featuring sturdy construction that develops a unique character over time.', stock: 10 },
-  { id: 'p2', name: 'Light Blue Cargo Jeans', price: 999, image: '/dress/pants/jeans_2.png', category: 'Jeans', description: 'Light blue loose-fit cargo jeans with spacious side pockets. They offer ultimate comfort and utility with a trendy streetwear aesthetic.', stock: 10 },
-  { id: 'p3', name: 'Classic Blue Straight Jeans', price: 1499, image: '/dress/pants/jeans_3.png', category: 'Jeans', description: 'Classic blue denim jeans with a timeless straight leg cut. Essential for any wardrobe, providing versatility and durability.', stock: 10 },
-  { id: 'p4', name: 'Dark Blue Slim Fit Jeans', price: 999, image: '/dress/pants/jeans_4.png', category: 'Jeans', description: 'Dark blue slim fit jeans that offer a sleek and urban look. Engineered with a slight stretch for maximum mobility.', stock: 10 },
-  { id: 'p5', name: 'Formal Brown Trousers', price: 899, image: '/dress/pants/pant_1.png', category: 'Pants', description: 'Formal brown trousers crafted for the modern professional. These pants deliver a sharp, tailored appearance suitable for any office setting.', stock: 10 },
-  { id: 'p6', name: 'Light Blue Tailored Trousers', price: 1399, image: '/dress/pants/pant_2.png', category: 'Pants', description: 'Elegant light blue formal trousers. Their premium fabric and impeccable tailoring ensure you look your best at formal events.', stock: 10 },
-  { id: 'p7', name: 'Grey Pinstripe Formal Pants', price: 749, image: '/dress/pants/pant_3.png', category: 'Pants', description: 'Sophisticated grey trousers with a subtle pinstripe pattern. A classic choice that adds authority to your business attire.', stock: 10 },
-  { id: 'p8', name: 'Classic Khaki Trousers', price: 1399, image: '/dress/pants/pant_4.png', category: 'Pants', description: 'Classic khaki/beige formal trousers offering a comfortable fit and a versatile neutral color that pairs perfectly with any shirt.', stock: 10 },
+  { id: 's1', name: 'Solid Brown Formal Shirt', price: 999, image: '/dress/shirts/shirt_1.png', category: 'Shirts', description: 'A stylish solid brown shirt that brings a modern twist to professional attire.', stock: 10 },
+  { id: 's2', name: 'Grey Double-Pocket Casual Shirt', price: 899, image: '/dress/shirts/shirt_2.png', category: 'Shirts', description: 'This comfortable grey/slate shirt features double chest pockets.', stock: 10 },
+  { id: 's3', name: 'Classic Maroon Shirt', price: 899, image: '/dress/shirts/shirt_3.png', category: 'Shirts', description: 'A bold maroon shirt designed with premium cotton.', stock: 10 },
+  { id: 's4', name: 'Dark Green Tailored Shirt', price: 1199, image: '/dress/shirts/shirt_4.png', category: 'Shirts', description: 'An elegant dark green shirt that adds a touch of sophistication.', stock: 10 },
+  { id: 'p1', name: 'Dark Grey Textured Jeans', price: 699, image: '/dress/pants/jeans_1.png', category: 'Jeans', description: 'These textured dark grey/black jeans are perfect for the true denim enthusiast.', stock: 10 },
+  { id: 'p2', name: 'Light Blue Cargo Jeans', price: 999, image: '/dress/pants/jeans_2.png', category: 'Jeans', description: 'Light blue cargo jeans with spacious side pockets.', stock: 10 },
+  { id: 'p5', name: 'Formal Brown Trousers', price: 899, image: '/dress/pants/pant_1.png', category: 'Pants', description: 'Formal brown trousers crafted for the modern professional.', stock: 10 },
+  { id: 'p6', name: 'Light Blue Tailored Trousers', price: 1399, image: '/dress/pants/pant_2.png', category: 'Pants', description: 'Elegant light blue formal trousers.', stock: 10 }
 ];
 
 interface ProductStore {
   products: Product[];
-  updateProduct: (id: string, updates: Partial<Product>) => void;
-  addProduct: (product: Product) => void;
-  removeProduct: (id: string) => void;
+  syncProducts: () => Promise<void>;
+  updateProduct: (id: string, updates: FormData | Partial<Product>) => Promise<boolean>;
+  addProduct: (product: FormData | Partial<Product>) => Promise<Product | null>;
+  removeProduct: (id: string) => Promise<boolean>;
 }
 
 export const useProductStore = create<ProductStore>()(
   persist(
     (set, get) => ({
       products: defaultProducts,
-      updateProduct: (id, updates) =>
-        set({
-          products: get().products.map((p) => (p.id === id ? { ...p, ...updates } : p)),
-        }),
-      addProduct: (product) => set({ products: [...get().products, product] }),
-      removeProduct: (id) => set({ products: get().products.filter((p) => p.id !== id) }),
+      syncProducts: async () => {
+        try {
+          const res = await fetch(`${API_URL}/api/products`);
+          if (res.ok) {
+            const data = await res.json();
+            if (Array.isArray(data)) {
+              // Map DB _id to id for seamless integration with existing frontend logic
+              const mapped = data.map((p: any) => ({
+                ...p,
+                id: p._id || p.id
+              }));
+              set({ products: mapped });
+            }
+          }
+        } catch (e) {
+          console.error('Failed to sync products from backend database:', e);
+        }
+      },
+      addProduct: async (productData) => {
+        const token = useAuthStore.getState().adminToken;
+        try {
+          const headers: Record<string, string> = {};
+          if (token) headers['Authorization'] = `Bearer ${token}`;
+
+          let body;
+          if (productData instanceof FormData) {
+            body = productData;
+          } else {
+            headers['Content-Type'] = 'application/json';
+            body = JSON.stringify(productData);
+          }
+
+          const res = await fetch(`${API_URL}/api/admin/products`, {
+            method: 'POST',
+            headers,
+            body,
+          });
+
+          if (res.ok) {
+            const newProduct = await res.json();
+            const mappedProduct = { ...newProduct, id: newProduct._id || newProduct.id };
+            set({ products: [...get().products, mappedProduct] });
+            return mappedProduct;
+          }
+          return null;
+        } catch (e) {
+          console.error('Failed to add product to backend:', e);
+          return null;
+        }
+      },
+      updateProduct: async (id, updates) => {
+        const token = useAuthStore.getState().adminToken;
+        try {
+          const headers: Record<string, string> = {};
+          if (token) headers['Authorization'] = `Bearer ${token}`;
+
+          let body;
+          if (updates instanceof FormData) {
+            body = updates;
+          } else {
+            headers['Content-Type'] = 'application/json';
+            body = JSON.stringify(updates);
+          }
+
+          const res = await fetch(`${API_URL}/api/admin/products/${id}`, {
+            method: 'PUT',
+            headers,
+            body,
+          });
+
+          if (res.ok) {
+            const updated = await res.json();
+            const mappedUpdated = { ...updated, id: updated._id || updated.id };
+            set({
+              products: get().products.map((p) => (p.id === id || p._id === id ? mappedUpdated : p)),
+            });
+            return true;
+          }
+          return false;
+        } catch (e) {
+          console.error('Failed to update product on backend:', e);
+          return false;
+        }
+      },
+      removeProduct: async (id) => {
+        const token = useAuthStore.getState().adminToken;
+        try {
+          const res = await fetch(`${API_URL}/api/admin/products/${id}`, {
+            method: 'DELETE',
+            headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+          });
+          if (res.ok) {
+            set({ products: get().products.filter((p) => p.id !== id && p._id !== id) });
+            return true;
+          }
+          return false;
+        } catch (e) {
+          console.error('Failed to delete product from backend:', e);
+          return false;
+        }
+      },
     }),
     {
-      name: 'jack-land-products',
+      name: 'jack-land-products-persistent',
       storage: createJSONStorage(() => localStorage),
     }
   )
@@ -153,44 +247,31 @@ interface User {
 interface AuthStore {
   user: User | null;
   isAdminLoggedIn: boolean;
-  register: (name: string, email: string, password: string) => boolean;
-  login: (email: string, password: string) => boolean;
-  adminLogin: (username: string, password: string) => boolean;
+  adminToken: string | null;
+  register: (name: string, email: string, password: string) => Promise<boolean>;
+  login: (email: string, password: string) => Promise<boolean>;
+  adminLogin: (username: string, password: string) => Promise<boolean>;
   logout: () => void;
   adminLogout: () => void;
 }
-
-// Admin credentials
-const ADMIN_USERNAME = 'admin';
-const ADMIN_PASSWORD = '1010_Admin@JackLand.com';
 
 export const useAuthStore = create<AuthStore>()(
   persist(
     (set) => ({
       user: null,
       isAdminLoggedIn: false,
-      register: (name, email, password) => {
+      adminToken: null,
+      register: async (name, email, password) => {
         try {
-          const users: { name: string; email: string; password: string }[] = JSON.parse(
-            localStorage.getItem('jack-land-users') || '[]'
-          );
-          if (users.find((u) => u.email === email)) return false; // email taken
-          users.push({ name, email, password });
-          localStorage.setItem('jack-land-users', JSON.stringify(users));
-          set({ user: { name, email } });
-          return true;
-        } catch {
-          return false;
-        }
-      },
-      login: (email, password) => {
-        try {
-          const users: { name: string; email: string; password: string }[] = JSON.parse(
-            localStorage.getItem('jack-land-users') || '[]'
-          );
-          const match = users.find((u) => u.email === email && u.password === password);
-          if (match) {
-            set({ user: { name: match.name, email: match.email } });
+          // Check backend or fallback locally
+          const res = await fetch(`${API_URL}/api/admin/register`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, email, password }),
+          });
+          if (res.ok) {
+            const data = await res.json();
+            set({ user: { name: data.admin.name, email: data.admin.email } });
             return true;
           }
           return false;
@@ -198,18 +279,50 @@ export const useAuthStore = create<AuthStore>()(
           return false;
         }
       },
-      adminLogin: (username, password) => {
-        if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
-          set({ isAdminLoggedIn: true, user: { name: username, email: '' } });
-          return true;
+      login: async (email, password) => {
+        try {
+          const res = await fetch(`${API_URL}/api/admin/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username: email, password }),
+          });
+          if (res.ok) {
+            const data = await res.json();
+            set({ user: { name: data.admin.name, email: data.admin.email } });
+            return true;
+          }
+          return false;
+        } catch {
+          return false;
         }
-        return false;
+      },
+      adminLogin: async (username, password) => {
+        try {
+          const res = await fetch(`${API_URL}/api/admin/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password }),
+          });
+          if (res.ok) {
+            const data = await res.json();
+            set({
+              isAdminLoggedIn: true,
+              adminToken: data.token,
+              user: { name: data.admin.name, email: data.admin.email },
+            });
+            return true;
+          }
+          return false;
+        } catch (e) {
+          console.error('Admin API login failed:', e);
+          return false;
+        }
       },
       logout: () => set({ user: null }),
-      adminLogout: () => set({ isAdminLoggedIn: false }),
+      adminLogout: () => set({ isAdminLoggedIn: false, adminToken: null, user: null }),
     }),
     {
-      name: 'jack-land-auth',
+      name: 'jack-land-auth-persistent',
       storage: createJSONStorage(() => localStorage),
     }
   )
@@ -228,6 +341,7 @@ export interface OrderItem {
 
 export interface Order {
   id: string;
+  _id?: string;
   items: OrderItem[];
   total: number;
   date: string;
@@ -253,12 +367,19 @@ export const useOrderStore = create<OrderStore>()(
     (set, get) => ({
       orders: [],
       syncOrders: async () => {
+        const token = useAuthStore.getState().adminToken;
         try {
-          const res = await fetch('/api/orders');
+          const res = await fetch(`${API_URL}/api/admin/orders`, {
+            headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+          });
           if (res.ok) {
             const data = await res.json();
             if (Array.isArray(data)) {
-              set({ orders: data });
+              const mapped = data.map((o: any) => ({
+                ...o,
+                id: o.id || o._id
+              }));
+              set({ orders: mapped });
             }
           }
         } catch (e) {
@@ -266,28 +387,48 @@ export const useOrderStore = create<OrderStore>()(
         }
       },
       addOrder: async (order) => {
+        // Optimistic local add
         set({ orders: [order, ...get().orders] });
         try {
-          await fetch('/api/orders', {
+          const res = await fetch(`${API_URL}/api/orders`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(order),
+            body: JSON.stringify({
+              items: order.items,
+              total: order.total,
+              customerName: order.customerName,
+              customerEmail: order.customerEmail,
+              customerPhone: order.customerPhone,
+              shippingAddress: order.shippingAddress,
+            }),
           });
+          if (res.ok) {
+            const saved = await res.json();
+            const mapped = { ...saved, id: saved.id || saved._id };
+            set({
+              orders: get().orders.map((o) => (o.id === order.id ? mapped : o)),
+            });
+          }
         } catch (e) {
           console.error('Failed to save order to database:', e);
         }
       },
       updateOrderStatus: async (id, status, additionalUpdates = {}) => {
+        const token = useAuthStore.getState().adminToken;
+        // Optimistic local update
         set({
           orders: get().orders.map((o) =>
-            o.id === id ? { ...o, status, ...additionalUpdates } : o
+            o.id === id || o._id === id ? { ...o, status, ...additionalUpdates } : o
           ),
         });
         try {
-          await fetch('/api/orders', {
+          await fetch(`${API_URL}/api/admin/orders/${id}`, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id, status, additionalUpdates }),
+            headers: {
+              'Content-Type': 'application/json',
+              ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+            },
+            body: JSON.stringify({ status, additionalUpdates }),
           });
         } catch (e) {
           console.error('Failed to update order status in database:', e);
@@ -296,7 +437,7 @@ export const useOrderStore = create<OrderStore>()(
       clearOrders: () => set({ orders: [] }),
     }),
     {
-      name: 'jack-land-orders',
+      name: 'jack-land-orders-persistent',
       storage: createJSONStorage(() => localStorage),
     }
   )
